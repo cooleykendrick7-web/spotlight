@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spotlight — Operator Panel</title>
+<meta name="theme-color" content="#12060d">
+<style>
+:root{--bg:#0d0710;--panel:#1a0f22;--panel2:#241331;--line:#3d2355;--txt:#f3eafd;--mut:#bda9d9;--gold:#fbbf24;--green:#4ade80;--acc:#e879f9;--red:#f87171}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--txt)}
+header{padding:16px 18px;background:linear-gradient(90deg,#052e16,#14532d);border-bottom:1px solid var(--line)}
+main{max-width:1020px;margin:0 auto;padding:16px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:6px 0 14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}.card b{font-size:25px;display:block}.card span{color:var(--mut);font-size:13px}
+button{background:var(--acc);color:#2a0530;border:0;padding:8px 12px;border-radius:9px;font-weight:700;cursor:pointer;font-size:13px}
+button.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}button.gold{background:var(--gold);color:#231a02}button.green{background:#16a34a;color:#fff}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+td,th{padding:10px;border-bottom:1px solid var(--line);text-align:left;font-size:14px;vertical-align:top}
+.mut{color:var(--mut);font-size:13px}a{color:var(--acc)}h2{margin:20px 0 8px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:800;text-transform:uppercase}
+.queued{background:#713f12;color:#fde68a}.done{background:#4ade80;color:#052e16}.needs_ken{background:#7f1d1d;color:#fecaca}.started{background:#155e75;color:#cffafe}.not_started{background:#475569;color:#e2e8f0}
+.notebox{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0;font-size:14px}
+.flash{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;background:#14532d;color:#bbf7d0;border:1px solid #16a34a;padding:12px 18px;border-radius:12px;font-weight:700;z-index:50}
+#liveDot{display:inline-block;width:9px;height:9px;border-radius:99px;background:#4ade80;margin-right:6px}
+select{background:#160a20;color:var(--txt);border:1px solid var(--line);border-radius:9px;padding:8px;font-size:13px}
+</style></head>
+<body>
+<header><div class="row" style="justify-content:space-between"><div><h1 style="margin:0">🛰️ Spotlight — Operator Panel</h1><div class="mut" style="color:#a7c4ae"><span id="liveDot"></span>Run by Milli for Ken. Acting pipeline, live from the database. No password — tap and you're in. Auto-refreshes every 20 seconds. <span id="upd"></span></div></div>
+<div class="row"><a href="/"><button class="ghost">Board</button></a><a href="/admin"><button class="gold">⚙️ Admin</button></a></div></div></header>
+<main>
+<div class="cards">
+  <div class="card"><span>🔎 Total acting entries</span><b id="cTotal">–</b><span id="cCats"></span></div>
+  <div class="card"><span>🎭 Roles / 🚪 Platforms</span><b id="cKinds">–</b><span>roles are applied to · platforms are profiles</span></div>
+  <div class="card"><span>👆 Approved — Milli applies</span><b style="color:var(--gold)" id="cApproved">–</b><span>Ken approved · Milli does the applying</span></div>
+  <div class="card"><span>✍️ Applied</span><b style="color:var(--acc)" id="cApplied">–</b><span id="cAud"></span></div>
+  <div class="card"><span>🎉 Booked</span><b style="color:#a78bfa" id="cBooked">–</b><span>real bookings only</span></div>
+  <div class="card"><span>💵 Paid to Ken so far</span><b style="color:var(--green)" id="cPaid">–</b><span>real money only</span></div>
+  <div class="card"><span>🙋 Needs Ken</span><b style="color:var(--red)" id="cKen">–</b><span>paywall / code / ID / self-tape steps</span></div>
+</div>
+
+<div class="notebox"><b>📋 Milli's next actions</b><div id="next" class="mut" style="margin-top:6px">Loading…</div></div>
+<div class="notebox" style="border-color:var(--gold)"><b>🛑 The hard-stop rule (always):</b> <span class="mut">Milli applies until a step needs only Ken — a paid subscription, a password or verification code, ID/tax/payment info, a contract signature, or RECORDING a self-tape (Ken performs). The job is marked <b style="color:#fecaca">NEEDS KEN</b> or noted, and Milli moves to the next one. Nothing is ever faked past those steps, and no listing is claimed “applied” until the platform confirms it.</span></div>
+
+<h2>👆 Approved by Ken — Milli applies</h2>
+<div id="approvedWrap">Loading…</div>
+
+<h2>🚪 Platform profile states</h2>
+<div id="queueWrap">Loading…</div>
+
+<h2>📌 Pipeline — every acting job</h2>
+<div id="statusWrap">Loading…</div>
+<p class="mut" style="text-align:center;margin-top:16px">Spotlight Operator v1.0 · If it's not in this panel, it hasn't happened — no fake “applied” claims, ever.</p>
+</main>
+<div id="flashWrap"></div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>'$'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+function flash(m){$('#flashWrap').innerHTML=`<div class="flash">${esc(m)}</div>`;setTimeout(()=>$('#flashWrap').innerHTML='',3500);}
+async function load(){
+  try{
+    const [sum,jobs]=await Promise.all([fetch('/api/operator/summary').then(r=>r.json()),fetch('/api/jobs').then(r=>r.json())]);
+    $('#cTotal').textContent=sum.total;
+    $('#cCats').textContent=Object.entries(sum.by_category).map(([k,v])=>k+': '+v).join(' · ');
+    $('#cKinds').textContent=sum.roles+' / '+sum.platforms;
+    $('#cApproved').textContent=sum.approved_count||0;
+    $('#cApplied').textContent=sum.by_status.applied;
+    $('#cAud').textContent=sum.by_status.audition+' audition · '+sum.by_status.callback+' callback';
+    $('#cBooked').textContent=sum.by_status.booked;
+    $('#cPaid').textContent=money(sum.paid_total);
+    $('#cKen').textContent=sum.by_signup.needs_ken;
+    const appr=sum.approved_to_apply||[];
+    $('#approvedWrap').innerHTML=appr.length?('<table><tr><th>Job</th><th>Lane / Level</th><th>Deadline</th><th>Milli\u2019s apply note</th><th>Controls</th></tr>'+appr.map(r=>`<tr><td><b>${esc(r.platform)}</b><div class="mut">${esc(r.title)}</div></td><td>${esc(r.category)} · ${esc(r.level)}</td><td>${esc(r.deadline||'—')}</td><td class="mut">${esc(r.apply_note||'— not applied yet —')}</td><td><div class="row"><button class="green" onclick="markApplied('${r.slug}')">✅ Applied it</button><button onclick="applyNote('${r.slug}')">📝 Note</button><button class="gold" onclick="setApprove('${r.slug}',false)">↩️ Unapprove</button></div></td></tr>`).join('')+'</table>'):'<div class="notebox">Nothing approved right now. When Ken taps <b>👆 APPROVE — MILLI APPLIES FOR ME</b> on the board, the job lands here and Milli does the applying.</div>';
+    $('#next').innerHTML=sum.next_actions.map(a=>'• '+esc(a)).join('<br>');
+    const plats=jobs.filter(r=>r.kind==='platform');
+    $('#queueWrap').innerHTML='<table><tr><th>Platform</th><th>Lane</th><th>Profile state</th><th>Operator controls</th></tr>'+plats.map(r=>`<tr><td><b><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.platform)}</a></b><div class="mut">${esc(r.pay_label||'')}</div></td><td>${esc(r.category)}</td><td><span class="badge ${esc(r.signup_state||'not_started')}">${esc((r.signup_state||'not_started').replace('_',' '))}</span></td><td><div class="row">
+      <button onclick="setSignup('${r.slug}','queued')">⏳ Queue</button>
+      <button onclick="setSignup('${r.slug}','started')">▶️ Started</button>
+      <button class="green" onclick="setSignup('${r.slug}','done')">✅ Profile live</button>
+      <button class="gold" onclick="setSignup('${r.slug}','needs_ken')">🙋 Needs Ken</button>
+    </div></td></tr>`).join('')+'</table>';
+    $('#statusWrap').innerHTML='<table><tr><th>Job</th><th>Status</th><th>Paid</th><th>Update</th></tr>'+jobs.map(r=>`<tr><td><b>${esc(r.platform)}</b> — ${esc(r.title)}</td><td>${esc(r.status)}</td><td>${r.status==='paid'?money(r.paid_amount):'—'}</td><td><div class="row"><select id="gs_${esc(r.slug)}">${['found','saved','applied','audition','callback','booked','paid','passed'].map(s=>`<option ${s===r.status?'selected':''}>${s}</option>`).join('')}</select><button onclick="setGig('${esc(r.slug)}')">Set</button></div></td></tr>`).join('')+'</table>';
+    $('#upd').textContent='Updated '+new Date().toLocaleTimeString();
+  }catch(e){}
+}
+window.setSignup=async(slug,state)=>{const r=await fetch('/api/jobs/'+slug+'/signup',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({signup_state:state})});if(r.ok){flash('✓ '+slug+' → '+state);load();}else alert('Could not update.');};
+window.setGig=async(slug)=>{const st=document.querySelector('#gs_'+CSS.escape(slug)).value;const r=await fetch('/api/jobs/'+slug,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:st})});if(r.ok){flash('✓ '+slug+' → '+st);load();}else alert('Could not update.');};
+window.setApprove=async(slug,approved)=>{const r=await fetch('/api/jobs/'+slug+'/approve',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({approved})});if(r.ok){flash(approved?'✅ Approved':'↩️ Unapproved');load();}else alert('Could not update.');};
+window.markApplied=async(slug)=>{const a=await fetch('/api/jobs/'+slug,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'applied'})});const b=await fetch('/api/jobs/'+slug+'/approve',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({approved:false})});if(a.ok&&b.ok){flash('✅ '+slug+' marked APPLIED');load();}else alert('Could not update.');};
+window.applyNote=async(slug)=>{const n=prompt('Milli\u2019s apply note for this job (what happened / what is blocking):','');if(n===null)return;const r=await fetch('/api/jobs/'+slug+'/apply-note',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({note:n})});if(r.ok){flash('📝 Note saved');load();}else alert('Could not save note.');};
+load(); setInterval(load,20000);
+</script></body></html>

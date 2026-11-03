@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Spotlight — Ken's Acting Board</title>
+<meta name="theme-color" content="#12060d">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Spotlight">
+<style>
+:root{--bg:#0d0710;--panel:#1a0f22;--panel2:#241331;--line:#3d2355;--txt:#f3eafd;--mut:#bda9d9;--gold:#fbbf24;--green:#4ade80;--acc:#e879f9;--red:#f87171}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--txt)}
+header{padding:16px 18px;background:linear-gradient(90deg,#12060d,#3b0764);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+h1{margin:0;font-size:24px}.sub{color:#d8c7f2;font-size:13px;margin-top:3px}
+main{max-width:1020px;margin:0 auto;padding:16px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:6px 0 14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}.card b{font-size:26px;display:block}.card span{color:var(--mut);font-size:13px}
+button{background:var(--acc);color:#2a0530;border:0;padding:9px 14px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px}
+button.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
+button.admin{background:var(--gold);color:#231a02;padding:11px 18px;font-size:15px;border-radius:11px}
+button.save{background:#334155;color:#fff;padding:8px 12px;font-size:13px}
+button.apply{background:#166534;color:#fff;padding:8px 12px;font-size:13px}
+button.book{background:#7c3aed;color:#fff;padding:8px 12px;font-size:13px}
+button.pass{background:#7f1d1d;color:#fff;padding:8px 12px;font-size:13px}
+button.approve{background:#b45309;color:#fff;padding:9px 13px;font-size:13px;border:1px solid #f59e0b}
+button.undo{background:#334155;color:#fff;padding:8px 12px;font-size:13px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.tab{padding:10px 16px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--txt);font-weight:700;cursor:pointer}
+.tab.on{background:var(--acc);color:#2a0530;border-color:var(--acc)}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+td,th{padding:11px;border-bottom:1px solid var(--line);text-align:left;font-size:14px;vertical-align:top}
+.badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:800;text-transform:uppercase;white-space:nowrap}
+.found{background:#3b0764;color:#e9d5ff}.saved{background:#155e75;color:#cffafe}.applied{background:#713f12;color:#fde68a}.audition{background:#9d174d;color:#fbcfe8}.callback{background:#c2410c;color:#ffedd5}.booked{background:#4c1d95;color:#ddd6fe}.paid{background:#4ade80;color:#052e16}.passed{background:#475569;color:#e2e8f0}
+.beginner{background:#14532d;color:#bbf7d0}.intermediate{background:#7c2d12;color:#fed7aa}
+.cat{background:#241331;color:#d8b4fe;border:1px solid var(--line)}
+.roleb{background:#fbbf24;color:#231a02}.platb{background:#38bdf8;color:#04121f}
+.mut{color:var(--mut);font-size:13px}a{color:var(--acc)}h2{margin:22px 0 6px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pay{color:var(--gold);font-weight:800}
+.dl{color:var(--red);font-weight:700;font-size:13px}
+#liveDot{display:inline-block;width:9px;height:9px;border-radius:99px;background:#4ade80;margin-right:6px}
+select,input{background:#160a20;color:var(--txt);border:1px solid var(--line);border-radius:9px;padding:9px;font-size:14px}
+.flash{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;background:#14532d;color:#bbf7d0;border:1px solid #16a34a;padding:12px 18px;border-radius:12px;font-weight:700;z-index:50;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.notebox{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0;font-size:14px}
+</style></head>
+<body>
+<header><div class="row" style="justify-content:space-between"><div><h1>🎬 Spotlight</h1><div class="sub"><span id="liveDot"></span>Ken's ACTING-ONLY board — beginner + intermediate jobs only. No advanced roles, no non-acting noise. Auto-refreshes every 20 seconds. <span id="upd" class="mut"></span></div></div>
+<div class="row"><a href="/operator"><button class="admin" style="background:#4ade80">🛰️ Operator Panel</button></a><a href="/admin"><button class="admin">⚙️ Admin — tap to enter (no password)</button></a></div></div></header>
+<main>
+<div class="cards">
+  <div class="card"><span>💵 Paid to you (real acting money received)</span><b style="color:var(--green)" id="cPaid">$0</b><span id="cPaidN"></span></div>
+  <div class="card"><span>🎯 In the pipeline</span><b style="color:var(--acc)" id="cActive">0</b><span>saved + applied + audition + callback + booked</span></div>
+  <div class="card"><span>🔎 Acting jobs found</span><b id="cTotal">0</b><span id="cCats"></span></div>
+  <div class="card"><span>💰 Top-end potential (all live listings)</span><b style="color:var(--gold)" id="cPot">$0</b><span>if you landed the top of every range — ranges, not promises</span></div>
+</div>
+
+<div class="notebox"><b>How Spotlight works — super simple:</b><br>
+<span class="mut">Every card is an <b style="color:var(--txt)">acting job only</b>, at <span class="badge beginner">beginner</span> or <span class="badge intermediate">intermediate</span> level — nothing advanced, ever.<br>
+🎭 <b style="color:var(--txt)">ROLE</b> = a real casting call you can be submitted to. 🚪 <b style="color:var(--txt)">PLATFORM</b> = a casting site where Milli builds your profile once, then it keeps feeding you roles.<br>
+👆 The easy way: tap <b style="color:#fbbf24">APPROVE — MILLI APPLIES FOR ME</b> and Milli does the actual applying — profile, headshot, intro, cover note — and writes back right on that card what happened.<br>
+🛑 <b style="color:var(--txt)">Scam rule:</b> legit casting NEVER charges you an upfront fee to audition. Subscriptions on the big platforms are your choice — Milli stops at every paywall and every ID/password step for your hands.<br>
+🎥 The one thing only you can do: <b style="color:var(--txt)">record the self-tape</b>. Milli preps the lines, the deadline and the upload — you perform.</span></div>
+
+<div class="tabs">
+  <button class="tab on" data-f="all">All acting</button>
+  <button class="tab" data-f="film_tv">🎬 Film &amp; TV</button>
+  <button class="tab" data-f="background">👥 Background / Extra</button>
+  <button class="tab" data-f="commercial">📺 Commercials</button>
+  <button class="tab" data-f="vertical">📱 Vertical Drama</button>
+  <button class="tab" data-f="voiceover">🎙️ Voiceover</button>
+  <button class="tab" data-f="indie">🎞️ Indie &amp; Student</button>
+</div>
+<div class="row" style="margin:6px 0">
+  <label class="mut" for="lvlSel"><b>Level:</b></label>
+  <select id="lvlSel"><option value="all">Beginner + Intermediate</option><option value="beginner">Beginner only</option><option value="intermediate">Intermediate only</option></select>
+  <label class="mut" for="sortSel"><b>Sort by:</b></label>
+  <select id="sortSel">
+    <option value="deadline">⏰ Deadline soonest</option>
+    <option value="pay_high">💰 Pay — HIGH to low</option>
+    <option value="pay_low">💰 Pay — LOW to high</option>
+    <option value="name">🔤 Platform A–Z</option>
+    <option value="status">📌 Status</option>
+  </select>
+  <input id="q" placeholder="Search role, platform, place…" style="flex:1;min-width:180px">
+</div>
+
+<div id="wrap"></div>
+
+<div class="notebox"><b>📱 Put Spotlight on your home screen:</b><div class="mut" style="margin-top:6px"><b>iPhone:</b> Share → <b>Add to Home Screen</b>. <b>Android:</b> ⋮ menu → <b>Install app</b>.</div></div>
+<p class="mut" style="text-align:center;margin-top:16px">Spotlight v1.0 · Acting only · Beginner + intermediate only · Pay ranges are what listings publish — never a guarantee · “Paid” counts only money actually received · Researched &amp; verified Nov 3, 2026.</p>
+</main>
+<div id="flashWrap"></div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>'$'+Number(n||0).toLocaleString('en-US',{maximumFractionDigits:0});
+let all=[], filter='all';
+const catLabel={film_tv:'🎬 FILM & TV',background:'👥 BACKGROUND',commercial:'📺 COMMERCIAL',vertical:'📱 VERTICAL',voiceover:'🎙️ VOICEOVER',indie:'🎞️ INDIE'};
+function badge(st){return `<span class="badge ${st}">${st}</span>`}
+function sortRows(rows){
+  const mode=$('#sortSel').value; const arr=[...rows];
+  if(mode==='pay_high')arr.sort((a,b)=>(b.pay_high||0)-(a.pay_high||0));
+  else if(mode==='pay_low')arr.sort((a,b)=>(a.pay_high||0)-(b.pay_high||0));
+  else if(mode==='name')arr.sort((a,b)=>a.platform.localeCompare(b.platform));
+  else if(mode==='status')arr.sort((a,b)=>a.status.localeCompare(b.status));
+  else arr.sort((a,b)=>{const da=a.deadline||'9999',db2=b.deadline||'9999';return da<db2?-1:da>db2?1:(b.pay_high||0)-(a.pay_high||0);});
+  return arr;
+}
+function render(){
+  const q=($('#q').value||'').toLowerCase();
+  const lv=$('#lvlSel').value;
+  let rows=all.filter(r=>(filter==='all'||r.category===filter)&&(lv==='all'||r.level===lv)&&(!q||(r.platform+' '+r.title+' '+r.location+' '+r.note).toLowerCase().includes(q)));
+  rows=sortRows(rows);
+  if(!rows.length){$('#wrap').innerHTML='<div class="notebox">Nothing matches that filter yet.</div>';return;}
+  $('#wrap').innerHTML='<table><tr><th>Acting job</th><th>Lane / Level</th><th>Pay</th><th>Where / Needs</th><th>Status</th><th>Your move</th></tr>'+rows.map(r=>{
+    const name=r.url?`<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.platform)}</a>`:esc(r.platform);
+    let acts='';
+    if(r.status==='found')acts=`<div class="row"><button class="save" onclick="setStatus('${r.slug}','saved')">⭐ Save</button><button class="apply" onclick="setStatus('${r.slug}','applied')">✍️ Applied</button><button class="pass" onclick="setStatus('${r.slug}','passed')">✗ Pass</button></div>`;
+    else if(r.status==='saved')acts=`<div class="row"><button class="apply" onclick="setStatus('${r.slug}','applied')">✍️ Applied</button><button class="pass" onclick="setStatus('${r.slug}','passed')">✗ Pass</button></div>`;
+    else if(r.status==='applied')acts=`<div class="row"><button class="book" onclick="setStatus('${r.slug}','audition')">🎥 Audition / Self-tape</button><button class="pass" onclick="setStatus('${r.slug}','passed')">✗ Pass</button></div>`;
+    else if(r.status==='audition')acts=`<div class="row"><button class="book" onclick="setStatus('${r.slug}','callback')">📞 Callback!</button><button class="pass" onclick="setStatus('${r.slug}','passed')">✗ No callback</button></div>`;
+    else if(r.status==='callback')acts=`<div class="row"><button class="book" onclick="setStatus('${r.slug}','booked')">🎉 Booked it</button><button class="pass" onclick="setStatus('${r.slug}','passed')">✗ Didn't book</button></div>`;
+    else if(r.status==='booked')acts=`<span class="mut">Booked — mark Paid in Admin when the money lands 💵</span>`;
+    else if(r.status==='paid')acts=`<span class="mut">💵 Paid ${r.paid_amount?money(r.paid_amount):''}</span>`;
+    else acts=`<div class="row"><button class="save" onclick="setStatus('${r.slug}','found')">↩️ Reopen</button></div>`;
+    let appr='';
+    if(r.apply_approved){ appr=`<div class="row" style="margin-top:6px"><span class="badge" style="background:#14532d;color:#bbf7d0">✅ APPROVED — MILLI APPLIES</span><button class="undo" onclick="setApprove('${r.slug}',false)">↩️ Undo</button></div>`; }
+    else if(['found','saved'].includes(r.status)){ appr=`<div class="row" style="margin-top:6px"><button class="approve" onclick="setApprove('${r.slug}',true)">👆 APPROVE — MILLI APPLIES FOR ME</button></div>`; }
+    if(r.apply_note) appr+=`<div class="mut" style="margin-top:4px">📝 Milli: ${esc(r.apply_note)}</div>`;
+    acts+=appr;
+    const dl=r.deadline?`<div class="dl">⏰ Deadline / shoot: ${esc(r.deadline)}</div>`:'';
+    return `<tr><td><b>${name}</b> — ${esc(r.title)}<div class="mut">${esc(r.note||'')}</div></td><td><span class="badge cat">${catLabel[r.category]||r.category}</span><div style="margin-top:4px"><span class="badge ${r.level}">${r.level}</span> <span class="badge ${r.kind==='role'?'roleb':'platb'}">${r.kind==='role'?'🎭 ROLE':'🚪 PLATFORM'}</span></div></td><td><span class="pay">${esc(r.pay_label||'')}</span></td><td>${esc(r.location||'')}${dl}<div class="mut">${esc(r.requirements||'')}</div></td><td>${badge(r.status)}</td><td>${acts}</td></tr>`;
+  }).join('')+'</table>';
+}
+function flash(msg){$('#flashWrap').innerHTML=`<div class="flash">${esc(msg)}</div>`;setTimeout(()=>$('#flashWrap').innerHTML='',3200);}
+async function load(){
+  try{
+    const [jobs,sum]=await Promise.all([fetch('/api/jobs').then(r=>r.json()),fetch('/api/summary').then(r=>r.json())]);
+    all=jobs;
+    $('#cPaid').textContent='$'+Number(sum.paid_total||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    $('#cPaidN').textContent=sum.counts.paid?sum.counts.paid+' paid acting gig(s)':'nothing has paid out yet — first booking is coming';
+    $('#cActive').textContent=sum.active_count;
+    $('#cTotal').textContent=sum.total;
+    $('#cCats').textContent=`${sum.roles} roles · ${sum.platforms} platforms · ${sum.by_level.beginner} beginner · ${sum.by_level.intermediate} intermediate`;
+    $('#cPot').textContent=money(sum.all_potential_high);
+    $('#upd').textContent='Updated '+new Date().toLocaleTimeString();
+    render();
+  }catch(e){}
+}
+window.setStatus=async(slug,status)=>{const r=await fetch('/api/jobs/'+slug,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});if(r.ok){flash('✓ Updated — '+status);load();}else alert('Could not update.');};
+window.setApprove=async(slug,approved)=>{const r=await fetch('/api/jobs/'+slug+'/approve',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({approved})});if(r.ok){flash(approved?'✅ Approved — Milli will apply for you':'↩️ Approval removed');load();}else alert('Could not update.');};
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));t.classList.add('on');filter=t.dataset.f;render();});
+$('#sortSel').onchange=render; $('#lvlSel').onchange=render; $('#q').oninput=render;
+load(); setInterval(load,20000);
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{});}
+</script></body></html>
