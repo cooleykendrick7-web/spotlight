@@ -1,0 +1,15 @@
+# Spotlight — Render Blueprint
+services:
+  - type: web
+    name: spotlight
+    env: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    disk:
+      name: spotlight-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: SPOTLIGHT_DB
+        value: /data/spotlight.db
