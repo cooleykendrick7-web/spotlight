@@ -184,6 +184,32 @@ async def headers(request: Request, call_next):
 async def healthz():
     return {"ok": True, "service": "spotlight", "version": "1.0.0"}
 
+@app.get("/api/notify")
+async def api_notify(t: str = "", title: str = "Spotlight", msg: str = ""):
+    """Fire a push to Ken's ntfy topic. Server-side on purpose: Render can
+    reach ntfy.sh, the agent VM's egress proxy cannot. Token-guarded by the
+    SPOTLIGHT_NOTIFY_TOKEN env var (fail-closed when unset). Added 2026-11-07
+    on Ken's order: Spotlight notifications on ntfy."""
+    import hmac, urllib.request, urllib.parse
+    token = os.environ.get("SPOTLIGHT_NOTIFY_TOKEN", "")
+    if not token:
+        raise HTTPException(503, "Notify not configured.")
+    if not hmac.compare_digest(t, token):
+        raise HTTPException(403, "Bad token.")
+    topic = os.environ.get("NTFY_TOPIC", "Ntfy1")
+    safe_title = (title or "Spotlight")[:120].encode("ascii", "replace").decode()
+    req = urllib.request.Request(
+        "https://ntfy.sh/" + urllib.parse.quote(topic),
+        data=(msg or "")[:1500].encode("utf-8", "replace"), method="POST",
+        headers={"Title": safe_title, "Tags": "clapper",
+                 "Click": "https://spotlight-1fgj.onrender.com/"})
+    try:
+        with urllib.request.urlopen(req, timeout=15) as r:
+            ok = 200 <= r.status < 300
+    except Exception:
+        ok = False
+    return {"ok": ok, "topic": topic}
+
 @app.get("/api/jobs")
 async def api_list(category: str | None = None, level: str | None = None, kind: str | None = None):
     c = db()
