@@ -126,8 +126,9 @@ function render(){
     else if(['found','saved'].includes(r.status)){ appr=`<div class="row" style="margin-top:6px"><button class="approve" onclick="setApprove('${r.slug}',true)">👆 APPROVE — MILLI APPLIES FOR ME</button></div>`; }
     if(r.apply_note) appr+=`<div class="mut" style="margin-top:4px">📝 Milli: ${esc(r.apply_note)}</div>`;
     acts+=appr;
-    const dl=r.deadline?`<div class="dl">⏰ Deadline / shoot: ${esc(r.deadline)}</div>`:'';
-    return `<tr><td><b>${name}</b> — ${esc(r.title)}<div class="mut">${esc(r.note||'')}</div></td><td><span class="badge cat">${catLabel[r.category]||r.category}</span><div style="margin-top:4px"><span class="badge ${r.level}">${r.level}</span> <span class="badge ${r.kind==='role'?'roleb':'platb'}">${r.kind==='role'?'🎭 ROLE':'🚪 PLATFORM'}</span></div></td><td><span class="pay">${esc(r.pay_label||'')}</span></td><td>${esc(r.location||'')}${dl}<div class="mut">${esc(r.requirements||'')}</div></td><td>${badge(r.status)}</td><td>${acts}</td></tr>`;
+    const dlFmt=d=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d||'');if(!m)return esc(d);const dt=new Date(Date.UTC(+m[1],+m[2]-1,+m[3]));return dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric',timeZone:'UTC'});};
+    const dl=r.deadline?`<div class="dl">⏰ Deadline / shoot: ${dlFmt(r.deadline)}</div>`:`<div class="dl">⏰ Date/time: rolling — no fixed date (see listing)</div>`;
+    return `<tr><td><b>${name}</b> — ${esc(r.title)}<div class="mut">${esc(r.note||'')}</div></td><td><span class="badge cat">${catLabel[r.category]||r.category}</span><div style="margin-top:4px"><span class="badge ${r.level}">${r.level}</span> <span class="badge ${r.kind==='role'?'roleb':'platb'}">${r.kind==='role'?'🎭 ROLE':'🚪 PLATFORM'}</span></div></td><td><span class="pay">${esc(r.pay_label||'')}</span></td><td><div>📍 ${esc(r.location||'Location not listed — see listing')}</div>${dl}<div class="mut">${esc(r.requirements||'')}</div></td><td>${badge(r.status)}</td><td>${acts}</td></tr>`;
   }).join('')+'</table>';
 }
 function flash(msg){$('#flashWrap').innerHTML=`<div class="flash">${esc(msg)}</div>`;setTimeout(()=>$('#flashWrap').innerHTML='',3200);}
